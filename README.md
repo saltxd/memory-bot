@@ -1,24 +1,52 @@
 # Memory Bot
 
-A Discord bot that acts as your personal knowledge base. Log anything, search it later, ask questions about it.
+### Your Personal AI Memory System
+
+**Log anything. Search naturally. Remember everything.**
+
+Memory Bot is a self-hosted Discord bot that acts as your second brain. Log thoughts, notes, meetings, ideas—anything—and retrieve them later using natural language search or AI-powered questions.
+
+```
+You:    /log Met with Sarah about Q1 roadmap. She wants dark mode prioritized.
+Bot:    Logged! (#42) You now have 847 memories stored.
+
+You:    /ask What did Sarah say about Q1?
+Bot:    Sarah mentioned she wants dark mode prioritized for Q1 [#42].
+        This aligns with the user feedback you logged last week [#38].
+```
+
+---
 
 ## Features
 
-- **/log** - Save memories (notes, thoughts, tasks, anything)
-- **/search** - Find memories by keyword using SQLite FTS5
-- **/ask** - Ask questions and get AI-powered answers with citations
-- **/help** - Quick reference
-- **/stats** - See your memory count
+| Command | Description |
+|---------|-------------|
+| `/log <text>` | Save anything to your memory bank |
+| `/search <query>` | Find memories by keyword (instant full-text search) |
+| `/ask <question>` | Ask questions and get AI answers with citations |
+| `/stats` | View your memory count and last entry |
+| `/help` | Quick command reference |
+
+**What makes it great:**
+
+- **Instant Search** — SQLite FTS5 full-text search finds memories in milliseconds
+- **AI-Powered Recall** — Ask natural questions like "What did I decide about the API?"
+- **Citation Support** — AI responses reference specific memories by ID so you can verify
+- **Timezone Aware** — Dates display in your local timezone
+- **Zero Maintenance** — Single SQLite file, no external databases
+- **Privacy First** — Self-hosted, your data never leaves your server
+
+---
 
 ## Quick Start
 
 ### Prerequisites
 
-- Docker and Docker Compose
-- Discord Bot Token ([create one](https://discord.com/developers/applications))
-- Anthropic API Key ([get one](https://console.anthropic.com/))
+- [Docker](https://docs.docker.com/get-docker/) installed and running
+- A Discord account
+- An [Anthropic API key](https://console.anthropic.com/)
 
-### 1. Clone and Configure
+### 1. Clone & Configure
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/memory-bot.git
@@ -26,12 +54,14 @@ cd memory-bot
 cp .env.example .env
 ```
 
-Edit `.env` with your tokens:
+Edit `.env` and add your credentials:
 
+```env
+DISCORD_TOKEN=your_discord_bot_token
+ANTHROPIC_API_KEY=sk-ant-your-key-here
 ```
-DISCORD_TOKEN=your_discord_token_here
-ANTHROPIC_API_KEY=your_anthropic_key_here
-```
+
+> Need help getting these? See the [detailed setup guide](SETUP.md).
 
 ### 2. Start the Bot
 
@@ -41,70 +71,144 @@ docker compose up -d
 
 ### 3. Invite to Your Server
 
-Generate an invite URL with these permissions:
-- `applications.commands` (for slash commands)
-- `bot` with permissions:
-  - Send Messages
-  - Use Slash Commands
+Use this URL template (replace `YOUR_CLIENT_ID` with your bot's Application ID):
 
-Or use this template (replace `YOUR_CLIENT_ID`):
 ```
 https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=2147485696&scope=bot%20applications.commands
 ```
 
-### 4. Use It
+**That's it!** Start logging with `/log` and searching with `/search`.
 
+---
+
+## Example Usage
+
+**Daily logging:**
 ```
-/log Met with Alex about the Q1 roadmap
-/log Idea: add dark mode to the dashboard
-/search roadmap
-/ask What did I discuss with Alex?
-```
-
-## Development Mode
-
-For instant command updates during development, set `DEV_GUILD_ID` to your test server's ID:
-
-```env
-DEV_GUILD_ID=123456789012345678
+/log Shipped the new auth flow. Took 3 days, but tests are passing.
+/log Idea: add keyboard shortcuts to the dashboard
+/log 1:1 with Mike - he's blocked on the API docs, needs examples
 ```
 
-Commands sync instantly to that server. Without this, global commands take up to 1 hour to propagate.
+**Finding information:**
+```
+/search auth flow
+/search Mike blocked
+```
 
-To find your server ID:
-1. Enable Developer Mode in Discord (Settings → App Settings → Advanced)
-2. Right-click your server name → Copy Server ID
+**Asking questions:**
+```
+/ask What features did I ship this week?
+/ask What's blocking Mike?
+/ask What ideas have I logged for the dashboard?
+```
+
+---
+
+## Why Self-Host?
+
+| Benefit | Description |
+|---------|-------------|
+| **Privacy** | Your thoughts stay on your server. No third-party access. |
+| **Cost Effective** | Pay only for Claude API usage (~$0.001 per query with Haiku) |
+| **Customizable** | Modify prompts, add commands, integrate with your tools |
+| **No Limits** | Store unlimited memories, no subscription tiers |
+| **Data Ownership** | Export anytime—it's just a SQLite file |
+
+---
 
 ## Configuration
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `DISCORD_TOKEN` | Yes | - | Your Discord bot token |
-| `ANTHROPIC_API_KEY` | Yes | - | Your Anthropic API key |
-| `ANTHROPIC_MODEL` | No | `claude-3-5-haiku-latest` | Claude model to use |
-| `CLAUDE_MAX_TOKENS` | No | `1024` | Max response length |
-| `TIMEZONE` | No | `America/Denver` | Timezone for dates |
-| `DEV_GUILD_ID` | No | - | Guild ID for dev (instant sync) |
+| `DISCORD_TOKEN` | Yes | — | Bot token from Discord Developer Portal |
+| `ANTHROPIC_API_KEY` | Yes | — | API key from Anthropic Console |
+| `ANTHROPIC_MODEL` | No | `claude-3-5-haiku-latest` | Claude model for `/ask` |
+| `CLAUDE_MAX_TOKENS` | No | `1024` | Max tokens in AI responses |
+| `TIMEZONE` | No | `America/Denver` | Your timezone for date display |
+| `DEV_GUILD_ID` | No | — | Server ID for instant command sync |
 
-## Data Storage
+See [.env.example](.env.example) for detailed descriptions.
 
-Memories are stored in `./data/memory.db` (SQLite). This directory is mounted as a volume, so your data persists across container restarts.
+---
 
-To backup:
+## System Requirements
+
+| Resource | Minimum | Recommended |
+|----------|---------|-------------|
+| **RAM** | 256 MB | 512 MB |
+| **Storage** | 100 MB | 1 GB+ (grows with memories) |
+| **CPU** | 1 core | Any modern CPU |
+| **Network** | Outbound HTTPS | For Discord & Claude API |
+
+Runs great on a Raspberry Pi, cheap VPS, or your local machine.
+
+---
+
+## Data & Backups
+
+Your memories live in `./data/memory.db` — a single SQLite file.
+
+**Backup:**
 ```bash
-cp data/memory.db memory-backup-$(date +%Y%m%d).db
+cp data/memory.db backups/memory-$(date +%Y%m%d).db
 ```
 
-## Logs
-
+**View logs:**
 ```bash
 docker compose logs -f
 ```
 
-## License
-
-MIT
+**Stop the bot:**
+```bash
+docker compose down
+```
 
 ---
 
-Built with [discord.py](https://discordpy.readthedocs.io/) and [Claude](https://www.anthropic.com/claude).
+## Development
+
+For faster iteration during development, set `DEV_GUILD_ID` to your test server:
+
+```env
+DEV_GUILD_ID=123456789012345678
+```
+
+Commands sync instantly to that server instead of waiting up to 1 hour for global propagation.
+
+**Run locally (without Docker):**
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python bot.py
+```
+
+---
+
+## Documentation
+
+- **[SETUP.md](SETUP.md)** — Detailed installation walkthrough with screenshots
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** — Guidelines for contributors
+
+---
+
+## Tech Stack
+
+- **[Python 3.12](https://python.org)** — Runtime
+- **[discord.py](https://discordpy.readthedocs.io/)** — Discord API wrapper
+- **[Anthropic Claude](https://anthropic.com)** — AI for natural language Q&A
+- **[SQLite + FTS5](https://sqlite.org/fts5.html)** — Fast full-text search
+- **[Docker](https://docker.com)** — Containerized deployment
+
+---
+
+## License
+
+MIT License — see [LICENSE](LICENSE) for details.
+
+---
+
+<p align="center">
+  <b>Built for people who think faster than they can organize.</b>
+</p>
